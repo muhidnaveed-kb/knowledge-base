@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KB — Knowledge Base</title>
+<style>
+  /* ── THEME VARIABLES ── */
+  :root {
+    --bg:       #0a0a0a;
+    --bg2:      #111111;
+    --bg3:      #161616;
+    --border:   #222222;
+    --border2:  #2a2a2a;
+    --text:     #e0d8cc;
+    --text2:    #8a8078;
+    --text3:    #555555;
+    --gold:     #c9a84c;
+    --gold2:    #e8c96a;
+    --accent:   #f0b429;
+    --red:      #c94c4c;
+    --green:    #4ca874;
+    --sidebar-w: 220px;
+    --right-w:   200px;
+    --topbar-h:  44px;
+    --tabnav-h:  44px;
+  }
+  html.mid {
+    --bg:#1c1c1e; --bg2:#252528; --bg3:#2c2c30;
+    --border:#38383c; --border2:#444448;
+    --text:#f0ece4; --text2:#a09890; --text3:#706860;
+  }
+  html.light {
+    --bg:#f5f0e8; --bg2:#fffdf8; --bg3:#edeae2;
+    --border:#d8d0c4; --border2:#c8bfb0;
+    --text:#2a2318; --text2:#5a5048; --text3:#9a9088;
+    --gold:#a07828; --gold2:#b89040; --accent:#b08020;
+    --red:#a03030; --green:#287848;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system,'Segoe UI',sans-serif; font-size: 13px;
+    display: flex; flex-direction: column; transition: background .25s, color .25s;
+  }
+
+  /* ── TOP BAR ── */
+  #topbar {
+    height: var(--topbar-h); background: var(--bg2);
+    border-bottom: 2px solid var(--gold);
+    display: flex; align-items: center; gap: 2px;
+    padding: 0 8px; flex-shrink: 0; z-index: 10; overflow-x: auto;
+  }
+  #topbar::-webkit-scrollbar { height: 0; }
+  .kb-logo {
+    background: var(--accent); color: #000; font-weight: 900; font-size: 13px;
+    width: 28px; height: 28px; border-radius: 4px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    margin-right: 4px; cursor: pointer;
+  }
+  .kb-logo:hover { background: var(--gold2); }
+  .tab-btn {
+    padding: 4px 10px; border-radius: 4px; border: none; cursor: pointer;
+    font-size: 12px; font-weight: 500; background: transparent;
+    color: var(--text2); transition: all .15s; white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .tab-btn:hover { background: rgba(201,168,76,.1); color: var(--text); }
+  .tab-btn.active { background: var(--accent); color: #000; font-weight: 700; }
+
+  /* ── MODE SWITCHER ── */
+  .mode-switcher {
+    margin-left: auto; display: flex; align-items: center; gap: 4px; flex-shrink: 0;
+  }
+  .mode-btn {
+    padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border2);
+    background: transparent; color: var(--text3); font-size: 10px;
+    cursor: pointer; transition: all .2s; letter-spacing: .5px; font-weight: 600;
+  }
+  .mode-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .mode-btn.active { background: var(--gold); color: #000; border-color: var(--gold); }
+
+  .topbar-search {
+    margin-left: 10px; background: var(--bg3); border: 1px solid var(--border2);
+    border-radius: 4px; padding: 4px 10px; color: var(--text2); font-size: 12px;
+    width: 170px; outline: none; transition: border-color .2s; flex-shrink: 0;
+  }
+  .topbar-search:focus { border-color: var(--gold); color: var(--text); }
+
+  /* GitHub publish button */
+  .gh-btn {
+    padding: 4px 12px; border-radius: 4px; border: 1px solid var(--border2);
+    background: transparent; color: var(--text3); font-size: 11px;
+    cursor: pointer; transition: all .15s; display: flex; align-items: center;
+    gap: 5px; white-space: nowrap; flex-shrink: 0; margin-left: 8px;
+  }
+  .gh-btn:hover { border-color: #58a6ff; color: #58a6ff; background: rgba(88,166,255,.08); }
+  .gh-btn svg { width: 14px; height: 14px; }
+
+  /* ── LAYOUT ── */
+  #layout { display: flex; flex: 1; overflow: hidden; }
+
+  /* ── LEFT SIDEBAR ── */
+  #sidebar {
+    width: var(--sidebar-w); background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; overflow-y: auto; flex-shrink: 0;
+    transition: background .25s;
+  }
+  .sidebar-section-label {
+    font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--text3); padding: 14px 14px 6px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .sidebar-add-btn {
+    background: none; border: none; color: var(--text3);
+    cursor: pointer; font-size: 16px; line-height: 1;
+  }
+  .sidebar-add-btn:hover { color: var(--gold); }
+  .sidebar-item {
+    padding: 7px 14px 7px 10px; cursor: pointer; color: var(--text2);
+    display: flex; align-items: center; gap: 4px; font-size: 12px;
+    border-left: 3px solid transparent; transition: all .12s;
+    position: relative;
+  }
+  .sidebar-item-label { flex: 1; }
+  .sidebar-item::before { content: '•'; color: var(--text3); font-size: 10px; flex-shrink: 0; }
+  .sidebar-item:hover { background: rgba(201,168,76,.06); color: var(--text); }
+  .sidebar-item.active {
+    background: rgba(201,168,76,.12); color: var(--gold);
+    border-left-color: var(--gold); font-weight: 600;
+  }
+  .sidebar-item.active::before { color: var(--gold); }
+  .sidebar-item-actions {
+    display: none; gap: 3px; align-items: center;
+  }
+  .sidebar-item:hover .sidebar-item-actions { display: flex; }
+  .si-action-btn {
+    background: none; border: none; color: var(--text3); cursor: pointer;
+    font-size: 11px; padding: 1px 3px; border-radius: 2px; line-height: 1;
+  }
+  .si-action-btn:hover { color: var(--gold); background: rgba(201,168,76,.1); }
+  .si-action-btn.del:hover { color: var(--red); background: rgba(201,76,76,.1); }
+
+  /* ── MAIN ── */
+  #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+  /* ── TOOLBAR ── */
+  #tabnav {
+    height: var(--tabnav-h); background: var(--bg3);
+    border-bottom: 1px solid var(--border2);
+    display: flex; align-items: center; padding: 0 14px; gap: 5px; flex-shrink: 0;
+    transition: background .25s; overflow-x: auto;
+  }
+  #tabnav::-webkit-scrollbar { height: 0; }
+  .breadcrumb { font-size: 11px; color: var(--text3); margin-right: 6px; white-space: nowrap; }
+  .bsep { color: var(--text3); margin: 0 4px; }
+  .bcur { color: var(--text); font-weight: 600; }
+  .toolbar-btn {
+    padding: 5px 11px; border-radius: 3px; border: 1px solid var(--border2);
+    background: var(--bg2); color: var(--text2); font-size: 11px;
+    cursor: pointer; display: flex; align-items: center; gap: 5px;
+    transition: all .15s; white-space: nowrap; flex-shrink: 0;
+  }
+  .toolbar-btn:hover { border-color: var(--gold); color: var(--gold); background: rgba(201,168,76,.06); }
+  .toolbar-btn.primary {
+    background: var(--gold); color: #000; border-color: var(--gold); font-weight: 700;
+  }
+  .toolbar-btn.primary:hover { background: var(--gold2); border-color: var(--gold2); }
+  .toolbar-btn svg { width: 12px; height: 12px; flex-shrink: 0; }
+
+  /* ── CONTENT AREA ── */
+  #content-area { flex: 1; overflow-y: auto; background: var(--bg); position: relative; transition: background .25s; }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; height: 100%; gap: 14px; color: var(--text3);
+  }
+  .empty-state svg { width: 52px; height: 52px; opacity: .2; }
+  .empty-state .es-title { font-size: 14px; color: var(--text2); }
+  .empty-state .es-sub { font-size: 11px; }
+
+  /* ── YEAR DIVIDER ── */
+  .year-divider {
+    display: flex; align-items: center; gap: 0;
+    position: sticky; top: 0; z-index: 50;
+    background: linear-gradient(90deg, var(--bg2) 0%, var(--bg3) 40%, var(--bg2) 100%);
+    border-top: 2px solid var(--gold); border-bottom: 1px solid var(--border2);
+    padding: 0 28px; box-shadow: 0 4px 20px rgba(0,0,0,.5);
+    transition: background .25s;
+  }
+  .yd-year { font-family: Georgia, serif; font-size: 2.2rem; font-weight: 900; color: var(--gold); padding: 8px 0; line-height: 1; letter-spacing: -1px; }
+  .yd-line { flex: 1; height: 1px; background: linear-gradient(90deg, rgba(201,168,76,.3), transparent); margin-left: 18px; }
+  .yd-filename { font-size: 10px; color: var(--text3); margin-left: 16px; font-family: monospace; letter-spacing: .5px; }
+  .yd-actions { display: flex; gap: 5px; margin-left: 14px; }
+  .yd-btn {
+    padding: 4px 10px; border-radius: 3px; border: 1px solid var(--border2);
+    background: transparent; color: var(--text3); font-size: 10px;
+    cursor: pointer; font-family: monospace; transition: all .15s;
+  }
+  .yd-btn:hover { border-color: var(--gold); color: var(--gold); background: rgba(201,168,76,.06); }
+  .yd-btn.remove:hover { border-color: var(--red); color: var(--red); background: rgba(201,76,76,.06); }
+
+  /* ── FILE BLOCK ── */
+  .file-block { position: relative; }
+  .file-block-iframe { width: 100%; border: none; display: block; background: transparent; transition: background .25s; }
+
+  /* ── TEXT ENTRY BLOCK ── */
+  .text-block {
+    margin: 16px 28px; padding: 18px 22px;
+    background: var(--bg2); border: 1px solid var(--border2); border-radius: 4px;
+    position: relative;
+  }
+  .text-block:hover { border-color: rgba(201,168,76,.3); }
+  .text-block .tb-meta { font-size: 10px; color: var(--text3); margin-bottom: 8px; font-family: monospace; }
+  .text-block .tb-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .text-block .tb-body { font-size: 13px; color: var(--text2); line-height: 1.7; white-space: pre-wrap; }
+  .text-block .tb-link { font-size: 11px; margin-top: 8px; }
+  .text-block .tb-link a { color: var(--gold); text-decoration: none; }
+  .text-block .tb-link a:hover { color: var(--gold2); }
+  .text-block-actions {
+    position: absolute; top: 10px; right: 10px;
+    display: none; gap: 4px;
+  }
+  .text-block:hover .text-block-actions { display: flex; }
+  .tb-action-btn {
+    padding: 3px 9px; border-radius: 3px; border: 1px solid rgba(201,168,76,.3);
+    background: rgba(10,9,6,.9); color: var(--gold); font-size: 10px;
+    cursor: pointer; font-family: monospace; transition: all .15s;
+  }
+  .tb-action-btn:hover { background: rgba(201,168,76,.15); }
+  .tb-action-btn.del { border-color: rgba(201,76,76,.3); color: var(--red); }
+  .tb-action-btn.del:hover { background: rgba(201,76,76,.15); }
+
+  /* ── RIGHT SIDEBAR ── */
+  #right-sidebar {
+    width: var(--right-w); background: var(--bg2);
+    border-left: 1px solid var(--border);
+    flex-shrink: 0; overflow-y: auto; padding: 12px 0;
+    transition: background .25s;
+  }
+  .rs-label { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--text3); padding: 8px 12px 6px; display: flex; align-items: center; justify-content: space-between; }
+  .rs-add-btn { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 14px; line-height: 1; }
+  .rs-add-btn:hover { color: var(--gold); }
+  .rs-item {
+    padding: 6px 12px; font-size: 11px; color: var(--text2); cursor: pointer;
+    border-left: 2px solid transparent; transition: all .12s;
+    display: flex; align-items: center; gap: 5px; position: relative;
+  }
+  .rs-item::before { content: '•'; font-size: 9px; color: var(--text3); flex-shrink: 0; }
+  .rs-item:hover { color: var(--gold); border-left-color: var(--gold); background: rgba(201,168,76,.05); }
+  .rs-item-label { flex: 1; }
+  .rs-item-actions { display: none; gap: 2px; }
+  .rs-item:hover .rs-item-actions { display: flex; }
+  .rs-action-btn {
+    background: none; border: none; color: var(--text3); cursor: pointer;
+    font-size: 10px; padding: 1px 3px; line-height: 1; border-radius: 2px;
+  }
+  .rs-action-btn:hover { color: var(--gold); }
+  .rs-action-btn.del:hover { color: var(--red); }
+
+  /* ── GITHUB PANEL (right sidebar section) ── */
+  .gh-panel { padding: 10px 12px; border-top: 1px solid var(--border); margin-top: 8px; }
+  .gh-panel-title { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--text3); margin-bottom: 10px; }
+  .gh-status {
+    font-size: 10px; padding: 5px 8px; border-radius: 3px; margin-bottom: 8px;
+    background: var(--bg3); border: 1px solid var(--border2); color: var(--text3);
+    font-family: monospace; min-height: 26px; line-height: 1.4;
+  }
+  .gh-status.ok { color: var(--green); border-color: rgba(76,168,116,.3); }
+  .gh-status.err { color: var(--red); border-color: rgba(201,76,76,.3); }
+  .gh-field-label { font-size: 9px; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; margin-top: 8px; }
+  .gh-field {
+    width: 100%; background: var(--bg3); border: 1px solid var(--border2);
+    color: var(--text); border-radius: 3px; padding: 5px 8px;
+    font-size: 11px; outline: none; font-family: monospace;
+  }
+  .gh-field:focus { border-color: var(--gold); }
+  .gh-field[type=password] { letter-spacing: 2px; }
+  .gh-publish-btn {
+    width: 100%; margin-top: 10px; padding: 7px; border-radius: 3px;
+    background: #238636; border: 1px solid #2ea043; color: #fff;
+    font-size: 11px; font-weight: 700; cursor: pointer; transition: all .2s;
+    letter-spacing: .5px;
+  }
+  .gh-publish-btn:hover { background: #2ea043; }
+  .gh-publish-btn:disabled { opacity: .4; cursor: not-allowed; }
+  .gh-save-token-btn {
+    width: 100%; margin-top: 6px; padding: 5px; border-radius: 3px;
+    background: transparent; border: 1px solid var(--border2); color: var(--text3);
+    font-size: 10px; cursor: pointer; transition: all .15s;
+  }
+  .gh-save-token-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* ── MODAL BASE ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,.8); backdrop-filter: blur(6px);
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: var(--bg2); border: 1px solid var(--border2);
+    border-top: 2px solid var(--gold); border-radius: 6px;
+    padding: 28px 30px; width: 480px; max-width: 92vw;
+    box-shadow: 0 24px 80px rgba(0,0,0,.8);
+  }
+  .modal-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .modal-sub { font-size: 11px; color: var(--text2); margin-bottom: 20px; line-height: 1.7; }
+  .field-label { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--text3); margin-bottom: 6px; display: block; }
+  .field-select, .field-input, .field-textarea {
+    width: 100%; background: var(--bg3); border: 1px solid var(--border2);
+    color: var(--text); border-radius: 3px; padding: 8px 10px;
+    font-size: 12px; outline: none; margin-bottom: 14px; font-family: inherit;
+  }
+  .field-textarea { min-height: 100px; resize: vertical; line-height: 1.6; }
+  .field-select:focus,.field-input:focus,.field-textarea:focus { border-color: var(--gold); }
+  .modal-status { font-size: 11px; color: var(--green); min-height: 18px; margin-bottom: 10px; }
+  .modal-status.err { color: var(--red); }
+  .modal-btns { display: flex; gap: 8px; justify-content: flex-end; }
+  .btn-cancel {
+    padding: 7px 16px; background: transparent; border: 1px solid var(--border2);
+    color: var(--text2); border-radius: 3px; cursor: pointer; font-size: 12px;
+  }
+  .btn-cancel:hover { border-color: var(--text); color: var(--text); }
+  .btn-primary {
+    padding: 7px 18px; background: var(--gold); color: #000;
+    border: none; border-radius: 3px; cursor: pointer; font-size: 12px; font-weight: 700;
+  }
+  .btn-primary:hover { background: var(--gold2); }
+  .btn-primary:disabled { opacity: .35; cursor: not-allowed; }
+  .btn-danger {
+    padding: 7px 18px; background: var(--red); color: #fff;
+    border: none; border-radius: 3px; cursor: pointer; font-size: 12px; font-weight: 700;
+  }
+  .btn-danger:hover { background: #e05555; }
+
+  /* Attach modal specific */
+  .drop-zone {
+    border: 2px dashed var(--border2); border-radius: 5px;
+    padding: 28px 20px; text-align: center; cursor: pointer;
+    transition: all .2s; margin-bottom: 16px;
+  }
+  .drop-zone:hover,.drop-zone.over { border-color: var(--gold); background: rgba(201,168,76,.04); }
+  .drop-zone svg { width: 32px; height: 32px; color: var(--text3); margin: 0 auto 8px; display: block; }
+  .drop-zone p { font-size: 12px; color: var(--text2); }
+  .drop-zone small { font-size: 10px; color: var(--text3); display: block; margin-top: 4px; }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed; bottom: 22px; right: 22px; background: var(--bg2);
+    border: 1px solid var(--gold); border-radius: 4px; padding: 10px 18px;
+    font-size: 12px; color: var(--text); z-index: 500;
+    transform: translateY(16px); opacity: 0; transition: all .25s; pointer-events: none;
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <div class="kb-logo" title="KB — Knowledge Base">KB</div>
+  <div id="main-tabs-container"></div>
+  <button class="tab-btn" id="add-tab-btn" onclick="openAddTabModal()" title="Add new tab">+</button>
+
+  <div class="mode-switcher">
+    <button class="mode-btn active" id="mode-dark"  onclick="setMode('dark')">DARK</button>
+    <button class="mode-btn"        id="mode-mid"   onclick="setMode('mid')">MID</button>
+    <button class="mode-btn"        id="mode-light" onclick="setMode('light')">LIGHT</button>
+  </div>
+
+  <button class="gh-btn" onclick="toggleGhPanel()" title="GitHub publish settings">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+    Publish to GitHub
+  </button>
+  <input class="topbar-search" placeholder="🔍 Search everything..." id="search-input" type="text" oninput="handleSearch(this.value)">
+</div>
+
+<div id="layout">
+
+  <!-- LEFT SIDEBAR -->
+  <div id="sidebar">
+    <div class="sidebar-section-label">
+      SUBTOPICS
+      <button class="sidebar-add-btn" onclick="openAddSubModal()" title="Add subtopic">+</button>
+    </div>
+    <div id="sidebar-items-container"></div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="main">
+    <div id="tabnav">
+      <div class="breadcrumb">
+        <span id="bc-main">—</span><span class="bsep">/</span><span class="bcur" id="bc-sub">—</span>
+      </div>
+      <button class="toolbar-btn" onclick="openTextModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Text
+      </button>
+      <button class="toolbar-btn" onclick="openLinkModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>Link
+      </button>
+      <button class="toolbar-btn" onclick="kbToast('Image upload — coming soon')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Image
+      </button>
+      <button class="toolbar-btn" onclick="kbToast('Video — coming soon')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>Video
+      </button>
+      <button class="toolbar-btn primary" onclick="openAttachModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+        Attach HTML
+      </button>
+    </div>
+
+    <div id="content-area">
+      <div class="empty-state" id="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+        </svg>
+        <div class="es-title">No content in <strong id="empty-name">—</strong></div>
+        <div class="es-sub">Use the toolbar above to add text, links, or attach an HTML archive</div>
+      </div>
+      <div id="timeline-root"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT SIDEBAR -->
+  <div id="right-sidebar">
+    <div class="rs-label">
+      RESOURCES
+      <button class="rs-add-btn" onclick="openAddResourceModal()" title="Add resource">+</button>
+    </div>
+    <div id="resources-container"></div>
+
+    <!-- GitHub Publish Panel -->
+    <div class="gh-panel" id="gh-panel" style="display:none">
+      <div class="gh-panel-title">⬡ GITHUB PUBLISH</div>
+      <div class="gh-field-label">Repository (user/repo)</div>
+      <input class="gh-field" id="gh-repo" placeholder="username/my-kb" type="text">
+      <div class="gh-field-label">Branch</div>
+      <input class="gh-field" id="gh-branch" value="main" type="text">
+      <div class="gh-field-label">File path</div>
+      <input class="gh-field" id="gh-filepath" value="index.html" type="text">
+      <div class="gh-field-label">Personal Access Token</div>
+      <input class="gh-field" id="gh-token" type="password" placeholder="ghp_…" autocomplete="off">
+      <button class="gh-save-token-btn" onclick="saveGhSettings()">Save settings locally</button>
+      <div class="gh-status" id="gh-status">Ready — configure repo above</div>
+      <button class="gh-publish-btn" id="gh-publish-btn" onclick="publishToGithub()">
+        ⬆ Push to GitHub Pages
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     MODALS
+═══════════════════════════════ -->
+
+<!-- ADD TAB -->
+<div class="modal-overlay" id="modal-add-tab">
+  <div class="modal-box">
+    <div class="modal-title">Add Tab</div>
+    <div class="modal-sub">Create a new top-level navigation tab.</div>
+    <label class="field-label">Tab name</label>
+    <input class="field-input" id="new-tab-name" placeholder="e.g. Psychology" type="text">
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('modal-add-tab')">Cancel</button>
+      <button class="btn-primary" onclick="confirmAddTab()">Add Tab</button>
+    </div>
+  </div>
+</div>
+
+<!-- RENAME TAB -->
+<div class="modal-overlay" id="modal-rename-tab">
+  <div class="modal-box">
+    <div class="modal-title">Rename Tab</div>
+    <label class="field-label">New name</label>
+    <input class="field-input" id="rename-tab-name" type="text">
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('modal-rename-tab')">Cancel</button>
+      <button class="btn-primary" onclick="confirmRenameTab()">Rename</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD SUBTOPIC -->
+<div class="modal-overlay" id="modal-add-sub">
+  <div class="modal-box">
+    <div class="modal-title">Add Subtopic</div>
+    <div class="modal-sub">Add a new subtopic under the current tab.</div>
+    <label class="field-label">Subtopic name</label>
+    <input class="field-input" id="new-sub-name" placeholder="e.g. Momentum Stocks" type="text">
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('modal-add-sub')">Cancel</button>
+      <button class="btn-primary" onclick="confirmAddSub()">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- RENAME SUBTOPIC -->
+<div class="modal-overlay" id="modal-rename-sub">
+  <div class="modal-box">
+    <div class="modal-title">Rename Subtopic</div>
+    <label class="field-label">New name</label>
+    <input class="field-input" id="rename-sub-name" type="text">
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('modal-rename-sub')">Cancel</button>
+      <button class="btn-primary" onclick="confirmRenameSub()">Rename</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD TEXT -->
+<div class="modal-overlay" id="modal-add-text">
+  <div class="modal-box">
+    <div class="modal-title">Add Text Note</div>
+    <label class="field-label">Title (optional)</label>
+    <input class="field-input" id="text-title" placeholder="e.g. Key insight on breakouts" type="text">
+    <label class="field-label">Content</label>
+    <textarea class="field-textarea" id="text-body" placeholder="Write your note here..."></textarea>
+    <label class="field-label">Source / reference URL (optional)</label>
+    <input class="field-input" id="text-url" placeholder="https://…" type="url">
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('modal-add-text')">Cancel</button>
+      <button class="btn-primary" onclick="confirmAddText()">Add Note</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT TEXT -->
+<div class="modal-overlay" id="modal-edit-text">
+  <div class="modal-box">
+    <div class="modal-title">Edit Note</div>
+    <label class="field-label">Title</label>
+    <input class="field-input" id="edit-text-title" type="text">
+    <label class="field-label">Content</label>
+    <textarea class="field-textarea" id="edit-text-body"></textarea>
+    <label class="field-label">Source URL</label>
+    <input class="field-input" id="edit-text-url" type="url">
+    <input type="hidden" id="edit-text-id">
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('modal-edit-text')">Cancel</button>
+      <button class="btn-primary" onclick="confirmEditText()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD LINK -->
+<div class="modal-overlay" id="modal-add-link">
+  <div class="modal-box">
+    <div class="modal-title">Add Link</div>
+    <label class="field-label">Title</label>
+    <input class="field-input" id="link-title" placeholder="e.g. IBD Market School" type="text">
+    <label class="field-label">URL</label>
+    <input class="field-input" id="link-url" placeholder="https://…" type="url">
+    <label class="field-label">Notes (optional)</label>
+    <textarea class="field-textarea" id="link-notes" placeholder="Why this link matters..." style="min-height:60px"></textarea>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('modal-add-link')">Cancel</button>
+      <button class="btn-primary" onclick="confirmAddLink()">Add Link</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD RESOURCE -->
+<div class="modal-overlay" id="modal-add-resource">
+  <div class="modal-box">
+    <div class="modal-title">Add Resource</div>
+    <label class="field-label">Label</label>
+    <input class="field-input" id="new-resource-name" placeholder="e.g. Watchlist" type="text">
+    <label class="field-label">URL (optional)</label>
+    <input class="field-input" id="new-resource-url" placeholder="https://…" type="url">
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('modal-add-resource')">Cancel</button>
+      <button class="btn-primary" onclick="confirmAddResource()">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- ATTACH HTML -->
+<div class="modal-overlay" id="modal-attach">
+  <div class="modal-box">
+    <div class="modal-title">📎 Attach HTML Archive</div>
+    <div class="modal-sub">Drop an archive HTML file. It will render under a year separator with edit/delete controls.</div>
+    <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <p id="dz-name">Click or drag &amp; drop HTML file here</p>
+      <small id="dz-sub">EG2006.html, EG2007.html, etc.</small>
+    </div>
+    <input type="file" id="file-input" accept=".html,.htm">
+    <label class="field-label">Year (auto-detected)</label>
+    <input class="field-input" id="year-input" placeholder="e.g. 2006" type="text" style="margin-bottom:10px">
+    <label class="field-label">Target subtopic</label>
+    <select class="field-select" id="target-select"></select>
+    <div class="modal-status" id="modal-status"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('modal-attach')">Cancel</button>
+      <button class="btn-primary" id="btn-attach" onclick="doAttach()" disabled>Attach</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════════
+
+const DEFAULT_STATE = {
+  tabs: [
+    { id: 'stocks',     label: 'Stocks',     subtopics: ['KQ','Monis','PCB','Larry','Mark Minervini','Dan Zanger','IBD','StockBee','EG 2005-2015','EG 2016-2020','EG 2021-2026'] },
+    { id: 'leadership', label: 'Leadership', subtopics: [] },
+    { id: 'investment', label: 'Investment', subtopics: [] },
+    { id: 'trading',    label: 'Trading',    subtopics: [] },
+    { id: 'mindset',    label: 'Mindset',    subtopics: [] },
+    { id: 'economics',  label: 'Economics',  subtopics: [] },
+    { id: 'technology', label: 'Technology', subtopics: [] },
+    { id: 'health',     label: 'Health',     subtopics: [] },
+    { id: 'education',  label: 'Education',  subtopics: [] },
+    { id: 'business',   label: 'Business',   subtopics: [] },
+    { id: 'personal',   label: 'Personal',   subtopics: [] },
+  ],
+  resources: [
+    { id: 'r1', label: 'Watchlist', url: '' },
+    { id: 'r2', label: 'Setups',    url: '' },
+    { id: 'r3', label: 'Earnings',  url: '' },
+    { id: 'r4', label: 'Scans',     url: '' },
+  ],
+  // contentMap: { [subtopicKey]: [entry, ...] }
+  // entry = { type: 'html'|'text'|'link', id, year?, filename?, htmlContent?, title?, body?, url?, notes?, date }
+  contentMap: {}
+};
+
+let state = loadState();
+let currentTabId   = state.tabs[0]?.id || null;
+let currentSubtopic = null;
+let pendingHTML    = '';
+let pendingFile    = null;
+let currentMode    = 'dark';
+let renamingTabId  = null;
+let renamingSubKey = null;
+let ghPanelOpen    = false;
+
+// ══════════════════════════════════════════════════════
+//  PERSISTENCE (localStorage)
+// ══════════════════════════════════════════════════════
+
+function loadState() {
+  try {
+    const s = localStorage.getItem('kb_state');
+    if (s) return JSON.parse(s);
+  } catch(e) {}
+  return JSON.parse(JSON.stringify(DEFAULT_STATE));
+}
+
+function saveState() {
+  try {
+    localStorage.setItem('kb_state', JSON.stringify(state));
+  } catch(e) {
+    kbToast('⚠ Storage full — some data not saved');
+  }
+}
+
+function subtopicKey(tabId, subtopic) {
+  return tabId + '::' + subtopic;
+}
+
+function getContent(tabId, subtopic) {
+  return state.contentMap[subtopicKey(tabId, subtopic)] || [];
+}
+
+function setContent(tabId, subtopic, entries) {
+  state.contentMap[subtopicKey(tabId, subtopic)] = entries;
+  saveState();
+}
+
+// ══════════════════════════════════════════════════════
+//  RENDER TABS
+// ══════════════════════════════════════════════════════
+
+function renderTabs() {
+  const container = document.getElementById('main-tabs-container');
+  container.innerHTML = '';
+  state.tabs.forEach(tab => {
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn' + (tab.id === currentTabId ? ' active' : '');
+    btn.dataset.tabId = tab.id;
+    btn.title = 'Click to open; double-click to rename';
+    btn.textContent = tab.label;
+    btn.onclick = () => switchMainTab(tab.id);
+    btn.ondblclick = (e) => { e.preventDefault(); openRenameTabModal(tab.id); };
+    container.appendChild(btn);
+  });
+  document.getElementById('bc-main').textContent = state.tabs.find(t => t.id === currentTabId)?.label || '—';
+}
+
+function switchMainTab(tabId) {
+  currentTabId = tabId;
+  const tab = state.tabs.find(t => t.id === tabId);
+  document.getElementById('bc-main').textContent = tab?.label || '';
+  renderTabs();
+  renderSidebar();
+  // Select first subtopic if any
+  if (tab?.subtopics?.length) {
+    selectSub(tab.subtopics[0]);
+  } else {
+    currentSubtopic = null;
+    document.getElementById('bc-sub').textContent = '—';
+    document.getElementById('empty-name').textContent = tab?.label || '—';
+    document.getElementById('empty-state').style.display = 'flex';
+    document.getElementById('timeline-root').innerHTML = '';
+  }
+  updateAttachSelect();
+}
+
+// ══════════════════════════════════════════════════════
+//  RENDER SIDEBAR
+// ══════════════════════════════════════════════════════
+
+function renderSidebar() {
+  const container = document.getElementById('sidebar-items-container');
+  container.innerHTML = '';
+  const tab = state.tabs.find(t => t.id === currentTabId);
+  if (!tab) return;
+
+  tab.subtopics.forEach(sub => {
+    const isActive = sub === currentSubtopic;
+    const item = document.createElement('div');
+    item.className = 'sidebar-item' + (isActive ? ' active' : '');
+
+    const bullet = document.createElement('span');
+    bullet.style.cssText = 'color:var(--text3);font-size:10px;flex-shrink:0';
+    bullet.textContent = '•';
+
+    const label = document.createElement('span');
+    label.className = 'sidebar-item-label';
+    label.textContent = sub;
+
+    const actions = document.createElement('div');
+    actions.className = 'sidebar-item-actions';
+
+    const renBtn = document.createElement('button');
+    renBtn.className = 'si-action-btn';
+    renBtn.title = 'Rename';
+    renBtn.textContent = '✎';
+    renBtn.onclick = (e) => { e.stopPropagation(); openRenameSubModal(sub); };
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'si-action-btn del';
+    delBtn.title = 'Delete';
+    delBtn.textContent = '✕';
+    delBtn.onclick = (e) => { e.stopPropagation(); deleteSub(sub); };
+
+    actions.appendChild(renBtn);
+    actions.appendChild(delBtn);
+    item.appendChild(bullet);
+    item.appendChild(label);
+    item.appendChild(actions);
+    item.onclick = () => selectSub(sub);
+    container.appendChild(item);
+  });
+}
+
+function selectSub(name) {
+  currentSubtopic = name;
+  document.getElementById('bc-sub').textContent = name;
+  document.getElementById('empty-name').textContent = name;
+  renderSidebar();
+  renderContent();
+  updateAttachSelect();
+}
+
+// ══════════════════════════════════════════════════════
+//  RENDER CONTENT
+// ══════════════════════════════════════════════════════
+
+function renderContent() {
+  const root  = document.getElementById('timeline-root');
+  const empty = document.getElementById('empty-state');
+  const entries = getContent(currentTabId, currentSubtopic);
+
+  root.innerHTML = '';
+
+  if (!entries.length) {
+    empty.style.display = 'flex';
+    return;
+  }
+  empty.style.display = 'none';
+
+  // Group HTML entries by year, text/link entries by date
+  const htmlEntries  = entries.filter(e => e.type === 'html').sort((a,b) => Number(b.year) - Number(a.year));
+  const otherEntries = entries.filter(e => e.type !== 'html').sort((a,b) => new Date(b.date) - new Date(a.date));
+
+  // Text/Link notes section
+  if (otherEntries.length) {
+    const notesDiv = document.createElement('div');
+    notesDiv.style.cssText = 'padding:16px 28px 0';
+    const noteTitle = document.createElement('div');
+    noteTitle.style.cssText = 'font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);padding:10px 0 8px;border-bottom:1px solid var(--border2);margin-bottom:8px';
+    noteTitle.textContent = 'NOTES & LINKS';
+    notesDiv.appendChild(noteTitle);
+
+    otherEntries.forEach(entry => {
+      const block = document.createElement('div');
+      block.className = 'text-block';
+      block.dataset.entryId = entry.id;
+
+      const meta = document.createElement('div');
+      meta.className = 'tb-meta';
+      meta.textContent = (entry.type === 'link' ? '🔗 LINK' : '📝 NOTE') + ' · ' + new Date(entry.date).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'});
+
+      const actions = document.createElement('div');
+      actions.className = 'text-block-actions';
+      const editBtn = document.createElement('button');
+      editBtn.className = 'tb-action-btn';
+      editBtn.textContent = '✎ Edit';
+      editBtn.onclick = () => openEditTextModal(entry.id);
+      const delBtn = document.createElement('button');
+      delBtn.className = 'tb-action-btn del';
+      delBtn.textContent = '✕';
+      delBtn.onclick = () => deleteEntry(entry.id);
+      actions.appendChild(editBtn);
+      actions.appendChild(delBtn);
+
+      block.appendChild(meta);
+      block.appendChild(actions);
+
+      if (entry.title) {
+        const titleEl = document.createElement('div');
+        titleEl.className = 'tb-title';
+        titleEl.textContent = entry.title;
+        block.appendChild(titleEl);
+      }
+      if (entry.body || entry.notes) {
+        const bodyEl = document.createElement('div');
+        bodyEl.className = 'tb-body';
+        bodyEl.textContent = entry.body || entry.notes || '';
+        block.appendChild(bodyEl);
+      }
+      if (entry.url) {
+        const linkEl = document.createElement('div');
+        linkEl.className = 'tb-link';
+        linkEl.innerHTML = `<a href="${entry.url}" target="_blank" rel="noopener">${entry.url}</a>`;
+        block.appendChild(linkEl);
+      }
+      notesDiv.appendChild(block);
+    });
+    root.appendChild(notesDiv);
+  }
+
+  // HTML archive entries
+  htmlEntries.forEach(entry => {
+    const divider = document.createElement('div');
+    divider.className = 'year-divider';
+    divider.innerHTML = `
+      <div class="yd-year">${entry.year}</div>
+      <div class="yd-line"></div>
+      <div class="yd-filename">${entry.filename || ''}</div>
+      <div class="yd-actions">
+        <button class="yd-btn remove" onclick="removeHtmlEntry('${entry.id}')">✕ Remove</button>
+      </div>
+    `;
+    root.appendChild(divider);
+
+    const block = document.createElement('div');
+    block.className = 'file-block';
+    const iframe = document.createElement('iframe');
+    iframe.className = 'file-block-iframe';
+    iframe.style.height = '600px';
+    iframe.scrolling = 'no';
+    block.appendChild(iframe);
+    root.appendChild(block);
+
+    const iDoc = iframe.contentDocument || iframe.contentWindow.document;
+    iDoc.open();
+    iDoc.write(entry.htmlContent);
+    iDoc.close();
+
+    function initIframe() {
+      try {
+        injectEditControls(iframe);
+        applyIframeMode(iframe, currentMode);
+        resizeIframe(iframe);
+      } catch(e) {}
+    }
+    iframe.onload = initIframe;
+    setTimeout(() => { try { initIframe(); } catch(e){} }, 300);
+    setTimeout(() => { try { resizeIframe(iframe); } catch(e){} }, 1500);
+    setTimeout(() => { try { resizeIframe(iframe); } catch(e){} }, 4000);
+  });
+}
+
+function resizeIframe(iframe) {
+  try {
+    const iDoc = iframe.contentDocument;
+    const h = Math.max(iDoc.documentElement.scrollHeight, iDoc.body.scrollHeight, iDoc.documentElement.offsetHeight);
+    if (h > 200) iframe.style.height = (h + 40) + 'px';
+  } catch(e) {}
+}
+
+// ── IFRAME EDIT CONTROLS (injected into archived HTML) ──
+function injectEditControls(iframe) {
+  const iDoc = iframe.contentDocument;
+  if (!iDoc || iDoc.getElementById('__kb-edit-style__')) return;
+
+  const style = iDoc.createElement('style');
+  style.id = '__kb-edit-style__';
+  style.textContent = `
+    .tl-item { position: relative !important; }
+    .tl-item:hover { outline: 1px solid rgba(201,168,76,.2); border-radius: 3px; }
+    .__kb-controls__ { position:absolute;top:8px;right:8px;display:none;gap:4px;z-index:999;align-items:center; }
+    .tl-item:hover .__kb-controls__ { display:flex!important; }
+    .__kb-btn__ { padding:3px 9px;border-radius:3px;border:1px solid rgba(201,168,76,.4);background:rgba(10,9,6,.92);color:#c9a84c;font-size:10px;font-family:monospace;cursor:pointer;letter-spacing:.5px;transition:all .15s;white-space:nowrap; }
+    .__kb-btn__:hover { background:rgba(201,168,76,.15); }
+    .__kb-btn__.del { border-color:rgba(201,76,76,.4);color:#c94c4c; }
+    .__kb-btn__.del:hover { background:rgba(201,76,76,.15); }
+    .tl-item.__editing__ .tl-content { display:none!important; }
+    .__kb-edit-area__ { display:none;margin-top:10px; }
+    .tl-item.__editing__ .__kb-edit-area__ { display:block!important; }
+    .__kb-textarea__ { width:100%;min-height:80px;background:rgba(10,9,6,.8);border:1px solid rgba(201,168,76,.4);border-radius:3px;color:#e8e0d5;font-size:14px;line-height:1.7;padding:10px 12px;resize:vertical;outline:none; }
+    .__kb-save__ { margin-top:6px;padding:5px 14px;background:#c9a84c;color:#000;border:none;border-radius:3px;cursor:pointer;font-size:11px;font-weight:700; }
+    .__kb-cancel__ { margin:6px 0 0 6px;padding:5px 12px;background:transparent;color:#7a6e64;border:1px solid #3d3428;border-radius:3px;cursor:pointer;font-size:11px; }
+    .__kb-add-btn__ { display:block;width:calc(100% - 48px);margin:0 24px 16px;padding:8px 16px;background:transparent;border:1px dashed rgba(201,168,76,.25);border-radius:3px;color:rgba(201,168,76,.5);font-family:monospace;font-size:10px;letter-spacing:1px;cursor:pointer;text-align:left;transition:all .2s; }
+    .__kb-add-btn__:hover { border-color:rgba(201,168,76,.6);color:#c9a84c;background:rgba(201,168,76,.04); }
+    .__kb-add-form__ { display:none;margin:0 24px 16px;padding:14px 16px;background:rgba(18,15,12,.8);border:1px solid rgba(201,168,76,.3);border-radius:4px; }
+    .__kb-add-form__.open { display:block!important; }
+    .__kb-add-ref__ { width:100%;background:rgba(10,9,6,.6);border:1px solid #3d3428;border-radius:3px;color:#e8e0d5;font-family:monospace;font-size:11px;padding:6px 10px;outline:none;margin-bottom:8px; }
+    .__kb-add-lbl__ { font-family:monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#7a6e64;margin-bottom:4px;display:block; }
+  `;
+  iDoc.head.appendChild(style);
+
+  iDoc.querySelectorAll('.tl-item').forEach(item => addIframeControls(item, iDoc));
+
+  iDoc.querySelectorAll('.timeline-body').forEach(body => {
+    const monthSection = body.closest('section.month-wrap');
+    const monthName = monthSection ? (monthSection.querySelector('.mm-title')||{}).textContent||'' : '';
+
+    const addBtn = iDoc.createElement('button');
+    addBtn.className = '__kb-add-btn__';
+    addBtn.textContent = '+ Add post to ' + monthName.trim();
+
+    const addForm = iDoc.createElement('div');
+    addForm.className = '__kb-add-form__';
+    addForm.innerHTML = `
+      <span class="__kb-add-lbl__">Post content</span>
+      <textarea class="__kb-textarea__" rows="4" style="width:100%;margin-bottom:8px;" placeholder="Enter text..."></textarea>
+      <span class="__kb-add-lbl__">Reference title (optional)</span>
+      <input class="__kb-add-ref__" placeholder="e.g. Bull Stampede" type="text">
+      <span class="__kb-add-lbl__">Reference URL (optional)</span>
+      <input class="__kb-add-ref__" placeholder="https://..." type="text">
+      <div><button class="__kb-save__">Add Post</button><button class="__kb-cancel__">Cancel</button></div>
+    `;
+
+    addBtn.addEventListener('click', () => {
+      addForm.classList.toggle('open');
+      addBtn.style.display = addForm.classList.contains('open') ? 'none' : 'block';
+    });
+
+    const [savBtn, canBtn] = addForm.querySelectorAll('button');
+    canBtn.addEventListener('click', () => { addForm.classList.remove('open'); addBtn.style.display = 'block'; });
+    savBtn.addEventListener('click', () => {
+      const [ta, refTitle, refUrl] = addForm.querySelectorAll('textarea,input');
+      const text = ta.value.trim();
+      if (!text) return;
+      const now = new Date();
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const dateStr = `${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')} ${months[now.getMonth()]} ${now.getDate()} ${now.getFullYear()}`;
+      const newItem = iDoc.createElement('div');
+      newItem.className = 'tl-item';
+      newItem.innerHTML = `<div class="tl-node notable"></div><div class="tl-meta"><span class="tl-date">${dateStr}</span>${refTitle.value.trim()?`<span class="tl-ref">re: <a href="${refUrl.value.trim()||'#'}" target="_blank">${refTitle.value.trim()}</a></span>`:''}</div><div class="tl-content"><p>${text.replace(/\n/g,'</p><p>')}</p></div>`;
+      body.insertBefore(newItem, body.firstChild);
+      addIframeControls(newItem, iDoc);
+      ta.value = ''; refTitle.value = ''; refUrl.value = '';
+      addForm.classList.remove('open'); addBtn.style.display = 'block';
+      resizeIframe(iframe);
+      kbToast('Post added ✓');
+    });
+
+    body.parentNode.insertBefore(addBtn, body.nextSibling);
+    body.parentNode.insertBefore(addForm, addBtn.nextSibling);
+  });
+}
+
+function addIframeControls(item, iDoc) {
+  if (item.querySelector('.__kb-controls__')) return;
+  const ctrl = iDoc.createElement('div');
+  ctrl.className = '__kb-controls__';
+  const editBtn = iDoc.createElement('button');
+  editBtn.className = '__kb-btn__';
+  editBtn.textContent = '✎ Edit';
+  const delBtn = iDoc.createElement('button');
+  delBtn.className = '__kb-btn__ del';
+  delBtn.textContent = '✕ Delete';
+  ctrl.appendChild(editBtn); ctrl.appendChild(delBtn);
+  item.appendChild(ctrl);
+
+  const editArea = iDoc.createElement('div');
+  editArea.className = '__kb-edit-area__';
+  const contentEl = item.querySelector('.tl-content');
+  const currentText = contentEl ? (contentEl.innerText || contentEl.textContent || '').trim() : '';
+  editArea.innerHTML = `<span class="__kb-add-lbl__">Edit post</span><textarea class="__kb-textarea__">${currentText}</textarea><div><button class="__kb-save__">Save</button><button class="__kb-cancel__">Cancel</button></div>`;
+  item.appendChild(editArea);
+
+  const [saveBtn, cancelBtn] = editArea.querySelectorAll('button');
+  editBtn.addEventListener('click', (e) => { e.stopPropagation(); item.classList.toggle('__editing__'); if (item.classList.contains('__editing__')) editArea.querySelector('.__kb-textarea__').focus(); });
+  cancelBtn.addEventListener('click', () => item.classList.remove('__editing__'));
+  saveBtn.addEventListener('click', () => {
+    const newText = editArea.querySelector('.__kb-textarea__').value.trim();
+    if (contentEl) contentEl.innerHTML = '<p>' + newText.replace(/\n/g,'</p><p>') + '</p>';
+    item.classList.remove('__editing__');
+    kbToast('Post updated ✓');
+  });
+  delBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (iDoc.defaultView.confirm('Delete this post?')) {
+      item.style.transition = 'opacity .2s, max-height .3s';
+      item.style.opacity = '0'; item.style.maxHeight = '0'; item.style.overflow = 'hidden';
+      setTimeout(() => { item.remove(); kbToast('Post deleted'); }, 300);
+    }
+  });
+}
+
+// ── THEME ──
+function applyIframeMode(iframe, mode) {
+  try {
+    const iDoc = iframe.contentDocument;
+    if (!iDoc) return;
+    let st = iDoc.getElementById('__kb-theme__');
+    if (!st) { st = iDoc.createElement('style'); st.id = '__kb-theme__'; iDoc.head.appendChild(st); }
+    if (mode === 'light') {
+      st.textContent = `:root{--page:#f5f0e8!important;--page2:#fffdf8!important;--page3:#edeae2!important;--border:#d8d0c4!important;--border2:#c8bfb0!important;--ink:#2a2318!important;--ink2:#5a5048!important;--ink3:#9a9088!important;--gold:#a07828!important;--gold2:#b89040!important;}body{background:#f5f0e8!important;color:#2a2318!important;}`;
+    } else if (mode === 'mid') {
+      st.textContent = `:root{--page:#1c1c1e!important;--page2:#252528!important;--page3:#2c2c30!important;--border:#38383c!important;--border2:#444448!important;--ink:#f0ece4!important;--ink2:#a09890!important;--ink3:#706860!important;}body{background:#1c1c1e!important;}`;
+    } else { st.textContent = ''; }
+  } catch(e) {}
+}
+
+function setMode(mode) {
+  currentMode = mode;
+  document.documentElement.className = mode === 'dark' ? '' : mode;
+  ['dark','mid','light'].forEach(m => document.getElementById('mode-'+m).classList.toggle('active', m === mode));
+  document.querySelectorAll('.file-block-iframe').forEach(iframe => applyIframeMode(iframe, mode));
+}
+
+// ══════════════════════════════════════════════════════
+//  TAB MANAGEMENT
+// ══════════════════════════════════════════════════════
+
+function openAddTabModal() {
+  document.getElementById('new-tab-name').value = '';
+  openModal('modal-add-tab');
+  setTimeout(() => document.getElementById('new-tab-name').focus(), 50);
+}
+
+function confirmAddTab() {
+  const name = document.getElementById('new-tab-name').value.trim();
+  if (!name) return;
+  const id = 'tab_' + Date.now();
+  state.tabs.push({ id, label: name, subtopics: [] });
+  saveState();
+  closeModal('modal-add-tab');
+  renderTabs();
+  switchMainTab(id);
+  kbToast(`Tab "${name}" added ✓`);
+}
+
+function openRenameTabModal(tabId) {
+  renamingTabId = tabId;
+  const tab = state.tabs.find(t => t.id === tabId);
+  document.getElementById('rename-tab-name').value = tab?.label || '';
+  openModal('modal-rename-tab');
+  setTimeout(() => document.getElementById('rename-tab-name').focus(), 50);
+}
+
+function confirmRenameTab() {
+  const name = document.getElementById('rename-tab-name').value.trim();
+  if (!name || !renamingTabId) return;
+  const tab = state.tabs.find(t => t.id === renamingTabId);
+  if (tab) { tab.label = name; saveState(); }
+  closeModal('modal-rename-tab');
+  renderTabs();
+  kbToast(`Renamed to "${name}" ✓`);
+}
+
+function deleteTab(tabId) {
+  const tab = state.tabs.find(t => t.id === tabId);
+  if (!tab) return;
+  if (!confirm(`Delete tab "${tab.label}" and ALL its content? This cannot be undone.`)) return;
+  state.tabs = state.tabs.filter(t => t.id !== tabId);
+  // Remove content
+  tab.subtopics.forEach(sub => { delete state.contentMap[subtopicKey(tabId, sub)]; });
+  saveState();
+  currentTabId = state.tabs[0]?.id || null;
+  if (currentTabId) switchMainTab(currentTabId); else renderTabs();
+  kbToast(`Tab deleted`);
+}
+
+// ══════════════════════════════════════════════════════
+//  SUBTOPIC MANAGEMENT
+// ══════════════════════════════════════════════════════
+
+function openAddSubModal() {
+  document.getElementById('new-sub-name').value = '';
+  openModal('modal-add-sub');
+  setTimeout(() => document.getElementById('new-sub-name').focus(), 50);
+}
+
+function confirmAddSub() {
+  const name = document.getElementById('new-sub-name').value.trim();
+  if (!name) return;
+  const tab = state.tabs.find(t => t.id === currentTabId);
+  if (!tab) return;
+  if (tab.subtopics.includes(name)) { kbToast('Subtopic already exists'); return; }
+  tab.subtopics.push(name);
+  saveState();
+  closeModal('modal-add-sub');
+  renderSidebar();
+  selectSub(name);
+  updateAttachSelect();
+  kbToast(`"${name}" added ✓`);
+}
+
+function openRenameSubModal(sub) {
+  renamingSubKey = sub;
+  document.getElementById('rename-sub-name').value = sub;
+  openModal('modal-rename-sub');
+  setTimeout(() => document.getElementById('rename-sub-name').focus(), 50);
+}
+
+function confirmRenameSub() {
+  const newName = document.getElementById('rename-sub-name').value.trim();
+  if (!newName || !renamingSubKey) return;
+  const tab = state.tabs.find(t => t.id === currentTabId);
+  if (!tab) return;
+  const idx = tab.subtopics.indexOf(renamingSubKey);
+  if (idx === -1) return;
+
+  // Move content
+  const oldKey = subtopicKey(currentTabId, renamingSubKey);
+  const newKey = subtopicKey(currentTabId, newName);
+  if (state.contentMap[oldKey]) { state.contentMap[newKey] = state.contentMap[oldKey]; delete state.contentMap[oldKey]; }
+  tab.subtopics[idx] = newName;
+  saveState();
+  closeModal('modal-rename-sub');
+  if (currentSubtopic === renamingSubKey) currentSubtopic = newName;
+  renderSidebar();
+  if (currentSubtopic === newName) { document.getElementById('bc-sub').textContent = newName; document.getElementById('empty-name').textContent = newName; }
+  updateAttachSelect();
+  kbToast(`Renamed to "${newName}" ✓`);
+}
+
+function deleteSub(sub) {
+  if (!confirm(`Delete subtopic "${sub}" and all its content?`)) return;
+  const tab = state.tabs.find(t => t.id === currentTabId);
+  if (!tab) return;
+  tab.subtopics = tab.subtopics.filter(s => s !== sub);
+  delete state.contentMap[subtopicKey(currentTabId, sub)];
+  saveState();
+  if (currentSubtopic === sub) { currentSubtopic = tab.subtopics[0] || null; }
+  renderSidebar();
+  if (currentSubtopic) selectSub(currentSubtopic); else { document.getElementById('timeline-root').innerHTML = ''; document.getElementById('empty-state').style.display = 'flex'; }
+  updateAttachSelect();
+  kbToast('Subtopic deleted');
+}
+
+// ══════════════════════════════════════════════════════
+//  CONTENT: TEXT & LINK
+// ══════════════════════════════════════════════════════
+
+function openTextModal() {
+  if (!currentSubtopic) { kbToast('Select a subtopic first'); return; }
+  document.getElementById('text-title').value = '';
+  document.getElementById('text-body').value = '';
+  document.getElementById('text-url').value = '';
+  openModal('modal-add-text');
+  setTimeout(() => document.getElementById('text-title').focus(), 50);
+}
+
+function confirmAddText() {
+  const title = document.getElementById('text-title').value.trim();
+  const body  = document.getElementById('text-body').value.trim();
+  const url   = document.getElementById('text-url').value.trim();
+  if (!body && !title) { kbToast('Please enter some content'); return; }
+  const entries = getContent(currentTabId, currentSubtopic);
+  entries.unshift({ type: 'text', id: 'e_' + Date.now(), title, body, url, date: new Date().toISOString() });
+  setContent(currentTabId, currentSubtopic, entries);
+  closeModal('modal-add-text');
+  renderContent();
+  kbToast('Note added ✓');
+}
+
+function openLinkModal() {
+  if (!currentSubtopic) { kbToast('Select a subtopic first'); return; }
+  document.getElementById('link-title').value = '';
+  document.getElementById('link-url').value = '';
+  document.getElementById('link-notes').value = '';
+  openModal('modal-add-link');
+  setTimeout(() => document.getElementById('link-title').focus(), 50);
+}
+
+function confirmAddLink() {
+  const title = document.getElementById('link-title').value.trim();
+  const url   = document.getElementById('link-url').value.trim();
+  const notes = document.getElementById('link-notes').value.trim();
+  if (!url) { kbToast('Please enter a URL'); return; }
+  const entries = getContent(currentTabId, currentSubtopic);
+  entries.unshift({ type: 'link', id: 'e_' + Date.now(), title, url, notes, date: new Date().toISOString() });
+  setContent(currentTabId, currentSubtopic, entries);
+  closeModal('modal-add-link');
+  renderContent();
+  kbToast('Link added ✓');
+}
+
+function openEditTextModal(entryId) {
+  const entries = getContent(currentTabId, currentSubtopic);
+  const entry = entries.find(e => e.id === entryId);
+  if (!entry) return;
+  document.getElementById('edit-text-title').value = entry.title || '';
+  document.getElementById('edit-text-body').value  = entry.body || entry.notes || '';
+  document.getElementById('edit-text-url').value   = entry.url || '';
+  document.getElementById('edit-text-id').value    = entryId;
+  openModal('modal-edit-text');
+}
+
+function confirmEditText() {
+  const entryId = document.getElementById('edit-text-id').value;
+  const entries = getContent(currentTabId, currentSubtopic);
+  const idx = entries.findIndex(e => e.id === entryId);
+  if (idx === -1) return;
+  entries[idx].title = document.getElementById('edit-text-title').value.trim();
+  entries[idx].body  = document.getElementById('edit-text-body').value.trim();
+  entries[idx].notes = entries[idx].body;
+  entries[idx].url   = document.getElementById('edit-text-url').value.trim();
+  setContent(currentTabId, currentSubtopic, entries);
+  closeModal('modal-edit-text');
+  renderContent();
+  kbToast('Note updated ✓');
+}
+
+function deleteEntry(entryId) {
+  if (!confirm('Delete this entry?')) return;
+  let entries = getContent(currentTabId, currentSubtopic);
+  entries = entries.filter(e => e.id !== entryId);
+  setContent(currentTabId, currentSubtopic, entries);
+  renderContent();
+  kbToast('Entry deleted');
+}
+
+// ══════════════════════════════════════════════════════
+//  CONTENT: HTML ARCHIVE
+// ══════════════════════════════════════════════════════
+
+function updateAttachSelect() {
+  const sel = document.getElementById('target-select');
+  sel.innerHTML = '';
+  const tab = state.tabs.find(t => t.id === currentTabId);
+  (tab?.subtopics || []).forEach(sub => {
+    const opt = document.createElement('option');
+    opt.value = sub; opt.textContent = sub;
+    if (sub === currentSubtopic) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function openAttachModal() {
+  if (!currentSubtopic) { kbToast('Select a subtopic first'); return; }
+  pendingHTML = ''; pendingFile = null;
+  document.getElementById('btn-attach').disabled = true;
+  document.getElementById('dz-name').textContent = 'Click or drag & drop HTML file here';
+  document.getElementById('dz-sub').textContent = 'Stockbee archive HTML — EG2006.html, EG2007.html, etc.';
+  document.getElementById('year-input').value = '';
+  const st = document.getElementById('modal-status');
+  st.textContent = ''; st.className = 'modal-status';
+  updateAttachSelect();
+  openModal('modal-attach');
+}
+
+document.getElementById('file-input').addEventListener('change', function() { if (this.files[0]) loadFile(this.files[0]); });
+const dz = document.getElementById('drop-zone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('over'); if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]); });
+
+function loadFile(f) {
+  pendingFile = f;
+  document.getElementById('dz-name').textContent = '📄 ' + f.name;
+  document.getElementById('dz-sub').textContent  = 'File loaded — ready to attach';
+  const st = document.getElementById('modal-status');
+  st.textContent = 'Reading...'; st.className = 'modal-status';
+  const reader = new FileReader();
+  reader.onload = e => {
+    pendingHTML = e.target.result;
+    let year = '';
+    const tm = pendingHTML.match(/<title[^>]*>[^<]*?(\d{4})/i);
+    if (tm) year = tm[1];
+    if (!year) { const fm = f.name.match(/(\d{4})/); if (fm) year = fm[1]; }
+    document.getElementById('year-input').value = year;
+    st.textContent = year ? `✓ Year detected: ${year}` : 'Loaded — enter year manually';
+    document.getElementById('btn-attach').disabled = false;
+  };
+  reader.onerror = () => { document.getElementById('modal-status').textContent = 'Error reading file.'; document.getElementById('modal-status').className = 'modal-status err'; };
+  reader.readAsText(f);
+}
+
+function doAttach() {
+  const year   = document.getElementById('year-input').value.trim();
+  const target = document.getElementById('target-select').value;
+  const st     = document.getElementById('modal-status');
+  if (!pendingHTML) { st.textContent = 'No file loaded.'; st.className = 'modal-status err'; return; }
+  if (!year || !/^\d{4}$/.test(year)) { st.textContent = 'Please enter a valid 4-digit year.'; st.className = 'modal-status err'; return; }
+
+  const entries = getContent(currentTabId, target);
+  const existIdx = entries.findIndex(e => e.type === 'html' && e.year === year);
+  if (existIdx >= 0) { if (!confirm(`Year ${year} already exists. Replace it?`)) return; entries.splice(existIdx, 1); }
+  entries.push({ type: 'html', id: 'e_' + Date.now(), year, filename: pendingFile?.name || '', htmlContent: pendingHTML });
+  setContent(currentTabId, target, entries);
+  st.textContent = `✓ Attached ${year} to "${target}"`;
+  setTimeout(() => {
+    closeModal('modal-attach');
+    if (target !== currentSubtopic) selectSub(target); else renderContent();
+    kbToast(`${year} archive attached ✓`);
+  }, 400);
+}
+
+function removeHtmlEntry(entryId) {
+  if (!confirm('Remove this HTML archive?')) return;
+  let entries = getContent(currentTabId, currentSubtopic);
+  entries = entries.filter(e => e.id !== entryId);
+  setContent(currentTabId, currentSubtopic, entries);
+  renderContent();
+  kbToast('Archive removed');
+}
+
+// ══════════════════════════════════════════════════════
+//  RESOURCES
+// ══════════════════════════════════════════════════════
+
+function renderResources() {
+  const container = document.getElementById('resources-container');
+  container.innerHTML = '';
+  state.resources.forEach(r => {
+    const item = document.createElement('div');
+    item.className = 'rs-item';
+
+    const label = document.createElement('span');
+    label.className = 'rs-item-label';
+    label.textContent = r.label;
+
+    const actions = document.createElement('div');
+    actions.className = 'rs-item-actions';
+    const delBtn = document.createElement('button');
+    delBtn.className = 'rs-action-btn del';
+    delBtn.textContent = '✕';
+    delBtn.title = 'Remove';
+    delBtn.onclick = (e) => { e.stopPropagation(); deleteResource(r.id); };
+    actions.appendChild(delBtn);
+
+    item.appendChild(document.createTextNode(''));
+    item.innerHTML = '';
+    // rebuild with bullet
+    const bullet = document.createElement('span');
+    bullet.style.cssText = 'font-size:9px;color:var(--text3);flex-shrink:0';
+    bullet.textContent = '•';
+    item.appendChild(bullet);
+    item.appendChild(label);
+    item.appendChild(actions);
+
+    if (r.url) item.onclick = () => window.open(r.url, '_blank');
+    container.appendChild(item);
+  });
+}
+
+function openAddResourceModal() {
+  document.getElementById('new-resource-name').value = '';
+  document.getElementById('new-resource-url').value = '';
+  openModal('modal-add-resource');
+  setTimeout(() => document.getElementById('new-resource-name').focus(), 50);
+}
+
+function confirmAddResource() {
+  const name = document.getElementById('new-resource-name').value.trim();
+  const url  = document.getElementById('new-resource-url').value.trim();
+  if (!name) return;
+  state.resources.push({ id: 'r_' + Date.now(), label: name, url });
+  saveState();
+  closeModal('modal-add-resource');
+  renderResources();
+  kbToast(`Resource "${name}" added ✓`);
+}
+
+function deleteResource(id) {
+  state.resources = state.resources.filter(r => r.id !== id);
+  saveState();
+  renderResources();
+  kbToast('Resource removed');
+}
+
+// ══════════════════════════════════════════════════════
+//  SEARCH
+// ══════════════════════════════════════════════════════
+
+function handleSearch(query) {
+  if (!query.trim()) { renderContent(); return; }
+  const q = query.toLowerCase();
+  const root  = document.getElementById('timeline-root');
+  const empty = document.getElementById('empty-state');
+
+  // Search across ALL content
+  const results = [];
+  state.tabs.forEach(tab => {
+    tab.subtopics.forEach(sub => {
+      const entries = getContent(tab.id, sub);
+      entries.filter(e => e.type !== 'html').forEach(e => {
+        const text = ((e.title||'') + ' ' + (e.body||'') + ' ' + (e.notes||'') + ' ' + (e.url||'')).toLowerCase();
+        if (text.includes(q)) results.push({ tab: tab.label, sub, entry: e });
+      });
+    });
+  });
+
+  root.innerHTML = '';
+  if (!results.length) {
+    empty.style.display = 'flex';
+    document.getElementById('empty-name').textContent = `No results for "${query}"`;
+    return;
+  }
+  empty.style.display = 'none';
+
+  const header = document.createElement('div');
+  header.style.cssText = 'padding:16px 28px 8px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border2)';
+  header.textContent = `${results.length} result${results.length!==1?'s':''} for "${query}"`;
+  root.appendChild(header);
+
+  results.forEach(r => {
+    const block = document.createElement('div');
+    block.className = 'text-block';
+    block.style.cursor = 'pointer';
+    block.onclick = () => { document.getElementById('search-input').value = ''; switchMainTab(state.tabs.find(t=>t.label===r.tab)?.id||currentTabId); setTimeout(() => selectSub(r.sub), 50); };
+
+    const meta = document.createElement('div');
+    meta.className = 'tb-meta';
+    meta.textContent = `${r.tab} → ${r.sub} · ${r.entry.type.toUpperCase()}`;
+    block.appendChild(meta);
+
+    if (r.entry.title) {
+      const t = document.createElement('div'); t.className = 'tb-title'; t.textContent = r.entry.title; block.appendChild(t);
+    }
+    if (r.entry.body || r.entry.notes) {
+      const b = document.createElement('div'); b.className = 'tb-body';
+      const snippet = (r.entry.body || r.entry.notes || '').substring(0, 200);
+      b.textContent = snippet + (snippet.length < (r.entry.body||'').length ? '…' : '');
+      block.appendChild(b);
+    }
+    if (r.entry.url) {
+      const l = document.createElement('div'); l.className = 'tb-link'; l.innerHTML = `<a href="${r.entry.url}" target="_blank">${r.entry.url}</a>`; block.appendChild(l);
+    }
+    root.appendChild(block);
+  });
+}
+
+// ══════════════════════════════════════════════════════
+//  GITHUB PUBLISH
+// ══════════════════════════════════════════════════════
+
+function toggleGhPanel() {
+  ghPanelOpen = !ghPanelOpen;
+  document.getElementById('gh-panel').style.display = ghPanelOpen ? 'block' : 'none';
+  if (ghPanelOpen) loadGhSettings();
+}
+
+function loadGhSettings() {
+  const saved = JSON.parse(localStorage.getItem('kb_gh_settings') || '{}');
+  if (saved.repo)     document.getElementById('gh-repo').value     = saved.repo;
+  if (saved.branch)   document.getElementById('gh-branch').value   = saved.branch;
+  if (saved.filepath) document.getElementById('gh-filepath').value = saved.filepath;
+  if (saved.token)    document.getElementById('gh-token').value    = saved.token;
+}
+
+function saveGhSettings() {
+  const settings = {
+    repo:     document.getElementById('gh-repo').value.trim(),
+    branch:   document.getElementById('gh-branch').value.trim() || 'main',
+    filepath: document.getElementById('gh-filepath').value.trim() || 'index.html',
+    token:    document.getElementById('gh-token').value.trim(),
+  };
+  localStorage.setItem('kb_gh_settings', JSON.stringify(settings));
+  setGhStatus('Settings saved ✓', 'ok');
+}
+
+function setGhStatus(msg, type='') {
+  const el = document.getElementById('gh-status');
+  el.textContent = msg;
+  el.className = 'gh-status' + (type ? ' ' + type : '');
+}
+
+async function publishToGithub() {
+  const repo     = document.getElementById('gh-repo').value.trim();
+  const branch   = document.getElementById('gh-branch').value.trim() || 'main';
+  const filepath = document.getElementById('gh-filepath').value.trim() || 'index.html';
+  const token    = document.getElementById('gh-token').value.trim();
+
+  if (!repo || !token) { setGhStatus('Enter repo and token first', 'err'); return; }
+
+  const btn = document.getElementById('gh-publish-btn');
+  btn.disabled = true;
+  setGhStatus('Preparing file…');
+
+  // Serialize the complete self-contained HTML with current state embedded
+  const htmlContent = buildExportHTML();
+  const encoded = btoa(unescape(encodeURIComponent(htmlContent)));
+
+  try {
+    // Get current file SHA (needed for update)
+    setGhStatus('Checking existing file…');
+    let sha = null;
+    try {
+      const getRes = await fetch(`https://api.github.com/repos/${repo}/contents/${filepath}?ref=${branch}`, {
+        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github.v3+json' }
+      });
+      if (getRes.ok) { const data = await getRes.json(); sha = data.sha; }
+    } catch(e) {}
+
+    setGhStatus('Pushing to GitHub…');
+    const body = { message: `KB update — ${new Date().toISOString()}`, content: encoded, branch };
+    if (sha) body.sha = sha;
+
+    const putRes = await fetch(`https://api.github.com/repos/${repo}/contents/${filepath}`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    if (putRes.ok) {
+      const result = await putRes.json();
+      setGhStatus('✓ Published successfully!', 'ok');
+      kbToast('Published to GitHub Pages ✓');
+      saveGhSettings();
+    } else {
+      const err = await putRes.json();
+      setGhStatus('Error: ' + (err.message || putRes.status), 'err');
+    }
+  } catch(e) {
+    setGhStatus('Network error: ' + e.message, 'err');
+  }
+  btn.disabled = false;
+}
+
+function buildExportHTML() {
+  // Clone the current page HTML and embed the current state
+  const clone = document.documentElement.outerHTML;
+  // Inject state as a bootstrap script
+  const stateScript = `<script id="__kb-bootstrap-state__">
+    window.__KB_BOOTSTRAP_STATE__ = ${JSON.stringify(state)};
+  <\/script>`;
+  return clone.replace('</head>', stateScript + '\n</head>');
+}
+
+// ══════════════════════════════════════════════════════
+//  MODAL HELPERS
+// ══════════════════════════════════════════════════════
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// Close on overlay click
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// Enter key on inputs
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+  if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
+    const modal = e.target.closest('.modal-overlay');
+    if (modal) { const primary = modal.querySelector('.btn-primary'); if (primary) primary.click(); }
+  }
+});
+
+// ══════════════════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════════════════
+
+function kbToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(window.__toastTimer__);
+  window.__toastTimer__ = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ══════════════════════════════════════════════════════
+//  BOOTSTRAP (load embedded or localStorage state)
+// ══════════════════════════════════════════════════════
+
+function init() {
+  // If published version has embedded state, restore it (but defer to localStorage if newer)
+  if (window.__KB_BOOTSTRAP_STATE__) {
+    const lsState = (() => { try { const s = localStorage.getItem('kb_state'); return s ? JSON.parse(s) : null; } catch(e) { return null; } })();
+    if (!lsState) {
+      state = window.__KB_BOOTSTRAP_STATE__;
+      saveState();
+    }
+  }
+
+  currentTabId = state.tabs[0]?.id || null;
+  renderTabs();
+  renderResources();
+  if (currentTabId) {
+    const tab = state.tabs[0];
+    switchMainTab(tab.id);
+  }
+  loadGhSettings();
+}
+
+init();
+</script>
+</body>
+</html>
