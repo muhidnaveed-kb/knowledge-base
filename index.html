@@ -466,13 +466,13 @@
       </div>
       <div class="gh-panel-title">⬡ GITHUB PUBLISH</div>
       <div class="gh-field-label">Repository (user/repo)</div>
-      <input class="gh-field" id="gh-repo" placeholder="username/my-kb" type="text">
+      <input class="gh-field" id="gh-repo" oninput="saveGhSettings()" placeholder="username/my-kb" type="text">
       <div class="gh-field-label">Branch</div>
-      <input class="gh-field" id="gh-branch" value="main" type="text">
+      <input class="gh-field" id="gh-branch" oninput="saveGhSettings()" value="main" type="text">
       <div class="gh-field-label">File path</div>
-      <input class="gh-field" id="gh-filepath" value="index.html" type="text">
+      <input class="gh-field" id="gh-filepath" oninput="saveGhSettings()" value="index.html" type="text">
       <div class="gh-field-label">Personal Access Token</div>
-      <input class="gh-field" id="gh-token" type="password" placeholder="ghp_…" autocomplete="off">
+      <input class="gh-field" id="gh-token" oninput="saveGhSettings()" type="password" placeholder="ghp_…" autocomplete="off">
       <button class="gh-save-token-btn" onclick="saveGhSettings()">Save settings locally</button>
       <div class="gh-status" id="gh-status">Ready — configure repo above</div>
       <button class="gh-publish-btn" id="gh-publish-btn" onclick="publishToGithub()">
@@ -1548,10 +1548,11 @@ function setGhStatus(msg, type='') {
 }
 
 async function publishToGithub(manual=true) {
-  const repo     = document.getElementById('gh-repo').value.trim();
-  const branch   = document.getElementById('gh-branch').value.trim() || 'main';
-  const filepath = document.getElementById('gh-filepath').value.trim() || 'index.html';
-  const token    = document.getElementById('gh-token').value.trim();
+  const _sv = JSON.parse(localStorage.getItem('kb_gh_settings') || '{}');
+  const repo     = (document.getElementById('gh-repo')?.value.trim()     || _sv.repo     || '');
+  const branch   = (document.getElementById('gh-branch')?.value.trim()   || _sv.branch   || 'main');
+  const filepath = (document.getElementById('gh-filepath')?.value.trim() || _sv.filepath || 'index.html');
+  const token    = (document.getElementById('gh-token')?.value.trim()    || _sv.token    || '');
 
   if (!repo || !token) { setGhStatus('Enter repo and token first', 'err'); return; }
 
@@ -1587,13 +1588,13 @@ async function publishToGithub(manual=true) {
     if (putRes.ok) {
       const result = await putRes.json();
       const _t = new Date(); const _ts = _t.getHours()+':'+String(_t.getMinutes()).padStart(2,'0');
-      _setSyncPill('synced','Synced '+_ts);
+      __setSyncPill('synced','Synced '+_ts);
       setGhStatus('Pushed at '+_ts+' - Pages updates in ~60s', 'ok');
       if(manual) kbToast('Published to GitHub Pages ✓');
       saveGhSettings();
     } else {
       const err = await putRes.json();
-      _setSyncPill('error','Sync failed');
+      __setSyncPill('error','Sync failed');
       setGhStatus('Error: ' + (err.message || putRes.status), 'err');
     }
   } catch(e) {
@@ -1652,10 +1653,12 @@ function kbToast(msg) {
 // ── AUTO-SYNC DEBOUNCE ──
 let _syncTimer = null;
 function _scheduleSync() {
-  const cfg = _ghCfgFast();
-  if (!cfg.auto || !cfg.repo || !cfg.token) return;
+  // Read purely from localStorage so panel doesn't need to be open
+  const _s = JSON.parse(localStorage.getItem('kb_gh_settings') || '{}');
+  const autoOn = document.getElementById('gh-autosync') ? document.getElementById('gh-autosync').checked : (_s.auto !== false);
+  if (!autoOn || !_s.repo || !_s.token) return;
   clearTimeout(_syncTimer);
-  _setSyncPill('syncing', 'Saving...');
+  __setSyncPill('syncing', 'Saving...');
   _syncTimer = setTimeout(() => publishToGithub(false), 3000);
 }
 function _ghCfgFast() {
@@ -1668,7 +1671,7 @@ function _ghCfgFast() {
     auto:   document.getElementById('gh-autosync') ? document.getElementById('gh-autosync').checked : (s.auto !== false)
   };
 }
-function _setSyncPill(state, label) {
+function __setSyncPill(state, label) {
   const p = document.getElementById('sync-pill');
   if (!p) return;
   p.className = '';
@@ -1696,7 +1699,7 @@ function init() {
     switchMainTab(tab.id);
   }
   loadGhSettings();
-  _setSyncPill('','GitHub sync');
+  __setSyncPill('','GitHub sync');
 }
 
 init();
